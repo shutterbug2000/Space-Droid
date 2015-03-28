@@ -18,7 +18,7 @@ public class MyGdxGame implements ApplicationListener
 
 	public static CharSequence debug2 = "";
 
-	public static CharSequence pc;
+	public static CharSequence pc = "";
 	
 	@Override
 	public void create()

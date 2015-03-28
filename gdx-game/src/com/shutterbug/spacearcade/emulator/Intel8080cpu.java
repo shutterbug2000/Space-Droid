@@ -13,7 +13,7 @@ public class Intel8080cpu
 	private int i;
 	private int cycles;
 	public void reset(){
-		regs = new char[5];
+		regs = new char[7];
 		flags = new char[7];
 		mem = new char[0x4000];
 		pc = 0;
@@ -104,6 +104,14 @@ public class Intel8080cpu
 					break;
 				}
 				
+				case 0x05:{
+					regs[Register.B.index]--;
+					if(regs[Register.B.index] == 0){
+						flags[Flag.Zero.index] = 1;
+					}
+					break;
+				}
+				
 				case 0x06:{
 					regs[Register.B.index] = (mem[pc + 1]);
 						cycles = 7;
@@ -119,6 +127,30 @@ public class Intel8080cpu
 					pc++;
 					break;
 				}
+				
+				case 0x11:{
+					//endianness might be incorrect
+					regs[Register.D.index] = mem[pc + 2];
+					regs[Register.E.index] = mem[pc + 1];
+					pc += 3;
+					break;
+				}
+				
+				case 0x13:{
+						//endianness might be incorrect
+						regs[Register.D.index]++;
+						regs[Register.E.index]++;
+						pc++;
+						break;
+					}
+				
+				case 0x21:{
+						//endianness might be incorrect
+						regs[Register.H.index] = mem[pc + 2];
+						regs[Register.L.index] = mem[pc + 1];
+						pc += 3;
+						break;
+					}
 				
 				case 0x32:{
 						int word = (mem[pc + 2] << 8) | (mem[pc + 1]);
@@ -177,14 +209,23 @@ public class Intel8080cpu
 				
 				case 0xc9:{
 					//Possible erronous emulation.
+					//debug
+						MyGdxGame.str = Integer.toHexString(mem[pc]);
+						MyGdxGame.pc = Integer.toHexString(pc);
+						MyGdxGame.halt = true;
+						MyGdxGame.debug = "Halted.";
+						MyGdxGame.debug2 = Integer.toHexString((sp + 1 << 8) | (sp));
+						//end debug
 					pc = ((sp << 8) | (sp + 1));
 					sp += 2;
 					break;
 					}
 						
 				case 0xcd:{
-							sp = (mem[pc + 2]);
-							pc = mem[pc];
+					//Fail emulation, FIX ASAP
+							sp = pc;
+							sp += 2;
+							pc = ((mem[pc + 2] << 8) | (mem[pc + 1]));
 				break;
 				}
 				
