@@ -20,7 +20,7 @@ public class Intel8080cpu
 		sp = 0;
 		DataInputStream input = null;
 		try {
-			input = new DataInputStream(new FileInputStream(new File("/sdcard/inv.h")));
+			input = new DataInputStream(new FileInputStream(new File("C:/sdcard/inv.h")));
 
 			int offset = 0;
 			for(i = 0; i < 0x7ff; i++){
@@ -38,7 +38,7 @@ public class Intel8080cpu
 		}
 		
 		try {
-			input = new DataInputStream(new FileInputStream(new File("/sdcard/inv.g")));
+			input = new DataInputStream(new FileInputStream(new File("C:/sdcard/inv.g")));
 
 			int offset = 0;
 			for(i = 0x7FF; i < (0x7ff * 2); i++){
@@ -56,7 +56,7 @@ public class Intel8080cpu
 		}
 		
 		try {
-			input = new DataInputStream(new FileInputStream(new File("/sdcard/inv.f")));
+			input = new DataInputStream(new FileInputStream(new File("C:/sdcard/inv.f")));
 
 			int offset = 0;
 			for(i = (0x7ff * 2); i < (0x7ff * 3); i++){
@@ -74,7 +74,7 @@ public class Intel8080cpu
 		}
 		
 		try {
-			input = new DataInputStream(new FileInputStream(new File("/sdcard/inv.e")));
+			input = new DataInputStream(new FileInputStream(new File("C:/sdcard/inv.e")));
 
 			int offset = 0;
 			for(i = (0x7ff * 3); i < (0x7ff * 4); i++){
@@ -208,7 +208,7 @@ public class Intel8080cpu
 					
 					
 				case 0xc3:{
-						Gdx.app.log("Debug", Integer.toHexString((mem[pc + 2] << 8) | (mem[pc + 1])));
+//						Gdx.app.log("Debug", Integer.toHexString((mem[pc + 2] << 8) | (mem[pc + 1])));
 					pc = ((mem[pc + 2] << 8) | (mem[pc +1]));
 						cycles = 10;
 						while(cycles > 0){
