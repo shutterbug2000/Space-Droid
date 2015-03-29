@@ -108,7 +108,17 @@ public class Intel8080cpu
 					regs[Register.B.index]--;
 					if(regs[Register.B.index] == 0){
 						flags[Flag.Zero.index] = 1;
+					}else{
+						flags[Flag.Zero.index] = 0;
 					}
+					
+					if(regs[Register.B.index] < 0){
+						flags[Flag.Sign.index] = 1;
+					}else{
+						flags[Flag.Sign.index] = 0;
+					}
+					
+					
 					break;
 				}
 				
