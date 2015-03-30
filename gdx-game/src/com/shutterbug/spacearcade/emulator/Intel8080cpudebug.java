@@ -5,7 +5,7 @@ import com.badlogic.gdx.*;
 import com.badlogic.gdx.utils.Bits;
 import com.shutterbug.spacearcade.*;
 
-public class Intel8080cpu
+public class Intel8080cpudebug
 {
 	private char regs[];
 	private char[] mem;
@@ -19,7 +19,7 @@ public class Intel8080cpu
 		flags = new char[7];
 		mem = new char[0x4000];
 		pc = 0;
-		sp = 0;
+		sp = 0x23DE;
 		DataInputStream input = null;
 		try {
 			input = new DataInputStream(new FileInputStream(new File("C:/sdcard/inv.h")));
@@ -242,7 +242,7 @@ public class Intel8080cpu
 						}
 				
 				case 0xc9:{
-					//Possible erronous emulation. *should be fixed*
+					//Possible erronous emulation.
 					/*debug
 						MyGdxGame.str = Integer.toHexString(mem[pc]);
 						MyGdxGame.pc = Integer.toHexString(pc);
@@ -250,8 +250,10 @@ public class Intel8080cpu
 						MyGdxGame.debug = "Halted.";
 						MyGdxGame.debug2 = Integer.toHexString((sp + 1 << 8) | (sp));
 						end debug */
-					//MyGdxGame.debug = Integer.toHexString((mem[sp] << 8) | (mem[sp + 1]));
+					//pc = ((sp + 1 << 8) | (sp));
+					MyGdxGame.debug = Integer.toHexString((mem[sp] << 8) | (mem[sp + 1]));
 					pc = (mem[sp] << 8) | (mem[sp + 1]);
+				//	MyGdxGame.halt = true;
 					sp += 2;
 					break;
 					}
@@ -270,13 +272,6 @@ public class Intel8080cpu
 					break;
 				}
 					
-				case 0xe1:{
-					//MyGdxGame.debug = Integer.toHexString((mem[sp] << 8) | (mem[sp + 1]));
-					regs[Register.L.index] = mem[sp];
-					regs[Register.H.index] = mem[sp + 1];
-					break;
-				}
-				
 				default:
 				{
 				//	Gdx.app.log("Unknown opcode:", Integer.toHexString(mem[pc]));

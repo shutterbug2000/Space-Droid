@@ -1,12 +1,14 @@
 package com.shutterbug.spacearcade;
 
 import com.badlogic.gdx.*;
+import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.graphics.g2d.*;
 import com.shutterbug.spacearcade.emulator.*;
 
 public class MyGdxGame implements ApplicationListener
 {
+	
 	Texture texture;
 	SpriteBatch batch;
 	Intel8080cpu space8080 = new Intel8080cpu();
@@ -14,6 +16,7 @@ public class MyGdxGame implements ApplicationListener
 	public static CharSequence debug = "";
 
 	private BitmapFont font;
+	public static CharSequence debug3 = "";
 	public static boolean halt;
 
 	public static CharSequence debug2 = "";
@@ -40,8 +43,9 @@ public class MyGdxGame implements ApplicationListener
 		//batch.draw(texture, Gdx.graphics.getWidth() / 4, 0, 
 		//		   Gdx.graphics.getWidth() / 2, Gdx.graphics.getWidth() / 2);
 		//batch.end();
-		if(!halt)
+		if(!halt || Gdx.input.isKeyPressed(Keys.SPACE)){
 		space8080.run();
+		}
 		batch.begin();
 		font.setColor(0.0f, 0.0f, 1.0f, 1.0f);
 //		font.scale(2);
@@ -49,6 +53,7 @@ public class MyGdxGame implements ApplicationListener
 		font.draw(batch, "PC: " + pc, Gdx.graphics.getWidth()/2, Gdx.graphics.getHeight()/8);
 		font.draw(batch, debug, Gdx.graphics.getWidth()/2, Gdx.graphics.getHeight()/4);
 		font.draw(batch, debug2, Gdx.graphics.getWidth()/2, Gdx.graphics.getHeight()/6);
+		font.draw(batch, debug3, Gdx.graphics.getWidth()/2, Gdx.graphics.getHeight());
 		batch.end();
 		}
 
