@@ -43,7 +43,7 @@ public class Intel8080cpu
 			input = new DataInputStream(new FileInputStream(new File("C:/sdcard/inv.g")));
 
 			int offset = 0;
-			for(i = 0x7FF; i < (0x7ff * 2); i++){
+			for(i = 0x800; i < 0xfff; i++){
 				mem[i] = (char)(input.readByte() & 0xFF);
 				offset++;
 			}
@@ -61,7 +61,7 @@ public class Intel8080cpu
 			input = new DataInputStream(new FileInputStream(new File("C:/sdcard/inv.f")));
 
 			int offset = 0;
-			for(i = (0x7ff * 2); i < (0x7ff * 3); i++){
+			for(i = 0x1000; i < 0x17FF; i++){
 				mem[i] = (char)(input.readByte() & 0xFF);
 				offset++;
 			}
@@ -79,7 +79,7 @@ public class Intel8080cpu
 			input = new DataInputStream(new FileInputStream(new File("C:/sdcard/inv.e")));
 
 			int offset = 0;
-			for(i = (0x7ff * 3); i < (0x7ff * 4); i++){
+			for(i = 0x1800; i < 0x1fff; i++){
 				mem[i] = (char)(input.readByte() & 0xFF);
 				offset++;
 			}
@@ -95,6 +95,8 @@ public class Intel8080cpu
 		}
 		
 		public void run(){
+			MyGdxGame.str = Integer.toHexString(mem[pc]);
+			MyGdxGame.pc = Integer.toHexString(pc);
 			switch(mem[pc]){
 				case 0x00:{
 					//do nothing at all
@@ -178,6 +180,11 @@ public class Intel8080cpu
 						break;
 					}
 				
+				case 0x1a:{
+					
+					break;
+				}
+				
 				case 0x21:{
 						//endianness might be incorrect
 						regs[Register.H.index] = mem[pc + 2];
@@ -185,6 +192,12 @@ public class Intel8080cpu
 						pc += 3;
 						break;
 					}
+				
+				case 0x31:{
+					sp = ((mem[pc + 2] << 8) | (mem[pc +1]));
+					pc += 3;
+					break;
+				}
 				
 				case 0x32:{
 						int word = (mem[pc + 2] << 8) | (mem[pc + 1]);
@@ -251,14 +264,14 @@ public class Intel8080cpu
 						MyGdxGame.debug2 = Integer.toHexString((sp + 1 << 8) | (sp));
 						end debug */
 					//MyGdxGame.debug = Integer.toHexString((mem[sp] << 8) | (mem[sp + 1]));
-					pc = (mem[sp] << 8) | (mem[sp + 1]);
+					pc = (mem[sp + 1] << 8) | (mem[sp]);
 					sp += 2;
 					break;
 					}
 						
 				case 0xcd:{
 					//Fail emulation, FIX ASAP
-							sp = pc;
+							mem[sp] = (char) pc;
 							sp += 2;
 							pc = ((mem[pc + 2] << 8) | (mem[pc + 1]));
 				break;
@@ -274,6 +287,7 @@ public class Intel8080cpu
 					//MyGdxGame.debug = Integer.toHexString((mem[sp] << 8) | (mem[sp + 1]));
 					regs[Register.L.index] = mem[sp];
 					regs[Register.H.index] = mem[sp + 1];
+					pc++;
 					break;
 				}
 				

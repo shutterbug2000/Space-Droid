@@ -16,6 +16,7 @@ public class MyGdxGame implements ApplicationListener
 	public static CharSequence debug = "";
 
 	private BitmapFont font;
+	public static CharSequence opsran = "";
 	public static CharSequence debug3 = "";
 	public static boolean halt;
 
@@ -44,6 +45,7 @@ public class MyGdxGame implements ApplicationListener
 		//		   Gdx.graphics.getWidth() / 2, Gdx.graphics.getWidth() / 2);
 		//batch.end();
 		if(!halt || Gdx.input.isKeyPressed(Keys.SPACE)){
+		MyGdxGame.halt = false;
 		space8080.run();
 		}
 		batch.begin();
@@ -54,6 +56,7 @@ public class MyGdxGame implements ApplicationListener
 		font.draw(batch, debug, Gdx.graphics.getWidth()/2, Gdx.graphics.getHeight()/4);
 		font.draw(batch, debug2, Gdx.graphics.getWidth()/2, Gdx.graphics.getHeight()/6);
 		font.draw(batch, debug3, Gdx.graphics.getWidth()/2, Gdx.graphics.getHeight());
+		font.draw(batch, opsran, Gdx.graphics.getWidth()/2, Gdx.graphics.getHeight());
 		batch.end();
 		}
 

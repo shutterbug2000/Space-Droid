@@ -19,7 +19,7 @@ public class Intel8080cpudebug
 		flags = new char[7];
 		mem = new char[0x4000];
 		pc = 0;
-		sp = 0x23DE;
+		sp = 0;
 		DataInputStream input = null;
 		try {
 			input = new DataInputStream(new FileInputStream(new File("C:/sdcard/inv.h")));
@@ -43,7 +43,7 @@ public class Intel8080cpudebug
 			input = new DataInputStream(new FileInputStream(new File("C:/sdcard/inv.g")));
 
 			int offset = 0;
-			for(i = 0x7FF; i < (0x7ff * 2); i++){
+			for(i = 0x800; i < 0xfff; i++){
 				mem[i] = (char)(input.readByte() & 0xFF);
 				offset++;
 			}
@@ -61,7 +61,7 @@ public class Intel8080cpudebug
 			input = new DataInputStream(new FileInputStream(new File("C:/sdcard/inv.f")));
 
 			int offset = 0;
-			for(i = (0x7ff * 2); i < (0x7ff * 3); i++){
+			for(i = 0x1000; i < 0x17FF; i++){
 				mem[i] = (char)(input.readByte() & 0xFF);
 				offset++;
 			}
@@ -79,7 +79,7 @@ public class Intel8080cpudebug
 			input = new DataInputStream(new FileInputStream(new File("C:/sdcard/inv.e")));
 
 			int offset = 0;
-			for(i = (0x7ff * 3); i < (0x7ff * 4); i++){
+			for(i = 0x1800; i < 0x1fff; i++){
 				mem[i] = (char)(input.readByte() & 0xFF);
 				offset++;
 			}
@@ -95,6 +95,8 @@ public class Intel8080cpudebug
 		}
 		
 		public void run(){
+			MyGdxGame.str = Integer.toHexString(mem[pc]);
+			MyGdxGame.pc = Integer.toHexString(pc);
 			switch(mem[pc]){
 				case 0x00:{
 					//do nothing at all
@@ -242,7 +244,7 @@ public class Intel8080cpudebug
 						}
 				
 				case 0xc9:{
-					//Possible erronous emulation.
+					//Possible erronous emulation. *should be fixed*
 					/*debug
 						MyGdxGame.str = Integer.toHexString(mem[pc]);
 						MyGdxGame.pc = Integer.toHexString(pc);
@@ -250,17 +252,15 @@ public class Intel8080cpudebug
 						MyGdxGame.debug = "Halted.";
 						MyGdxGame.debug2 = Integer.toHexString((sp + 1 << 8) | (sp));
 						end debug */
-					//pc = ((sp + 1 << 8) | (sp));
-					MyGdxGame.debug = Integer.toHexString((mem[sp] << 8) | (mem[sp + 1]));
-					pc = (mem[sp] << 8) | (mem[sp + 1]);
-				//	MyGdxGame.halt = true;
+					//MyGdxGame.debug = Integer.toHexString((mem[sp] << 8) | (mem[sp + 1]));
+					pc = (mem[sp + 1] << 8) | (mem[sp]);
 					sp += 2;
 					break;
 					}
 						
 				case 0xcd:{
 					//Fail emulation, FIX ASAP
-							sp = pc;
+							mem[sp] = (char) pc;
 							sp += 2;
 							pc = ((mem[pc + 2] << 8) | (mem[pc + 1]));
 				break;
@@ -272,6 +272,14 @@ public class Intel8080cpudebug
 					break;
 				}
 					
+				case 0xe1:{
+					//MyGdxGame.debug = Integer.toHexString((mem[sp] << 8) | (mem[sp + 1]));
+					regs[Register.L.index] = mem[sp];
+					regs[Register.H.index] = mem[sp + 1];
+					pc++;
+					break;
+				}
+				
 				default:
 				{
 				//	Gdx.app.log("Unknown opcode:", Integer.toHexString(mem[pc]));
