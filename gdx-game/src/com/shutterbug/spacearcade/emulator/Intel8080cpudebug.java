@@ -14,7 +14,9 @@ public class Intel8080cpudebug
 	private int pc;
 	private int i;
 	private int cycles;
+	private Convience conv;
 	public void reset(){
+		conv = new Convience(this);
 		regs = new char[7];
 		flags = new char[7];
 		mem = new char[0x4000];
@@ -94,9 +96,50 @@ public class Intel8080cpudebug
 		}
 		}
 		
+		public char[] getRegs() {
+		return regs;
+	}
+
+	public void setRegs(char[] regs) {
+		this.regs = regs;
+	}
+
+	public char[] getMem() {
+		return mem;
+	}
+
+	public void setMem(char[] mem) {
+		this.mem = mem;
+	}
+
+	public char[] getFlags() {
+		return flags;
+	}
+
+	public void setFlags(char[] flags) {
+		this.flags = flags;
+	}
+	
+	public int getPc() {
+		return pc;
+	}
+
+	public void setPc(int pc) {
+		this.pc = pc;
+	}
+	
+	public int getSp() {
+		return sp;
+	}
+
+	public void setSp(int sp) {
+		this.sp = sp;
+	}
+
 		public void run(){
 			MyGdxGame.str = Integer.toHexString(mem[pc]);
 			MyGdxGame.pc = Integer.toHexString(pc);
+			MyGdxGame.debug = Integer.toHexString(regs[Register.B.index]);
 			switch(mem[pc]){
 				case 0x00:{
 					//do nothing at all
@@ -109,47 +152,13 @@ public class Intel8080cpudebug
 				}
 				
 				case 0x05:{
-					regs[Register.B.index] = (char) ((regs[Register.B.index] & 0xFF) - 1);
-					
-					//Z flag check
-					if((regs[Register.B.index] & 0xFF) == 0){
-						flags[Flag.Zero.index] = 1;
-					}else{
-						flags[Flag.Zero.index] = 0;
-					}
-					
-					//S flag check
-					if((regs[Register.B.index] & 0xFF) < 0){
-						flags[Flag.Sign.index] = 1;
-					}else{
-						flags[Flag.Sign.index] = 0;
-					}
-					
-					//P flag check
-					int s = (int)(regs[Register.B.index] & 0xFF);
-					
-					int bitCount = 0;
-					for ( int i = 0; i < 8; i++, s >>>= 1 )
-		            {
-		            if ( ( s & 1 ) != 0 )
-		                {
-		                bitCount++;
-		                }
-		            }
-					
-					if(bitCount % 2 == 0){
-						flags[Flag.Parity.index] = 1;
-					}else{
-						flags[Flag.Parity.index] = 0;
-					}
-					
-					//TODO: MAJOR: Figure out how to emulator AC flag
+					conv.decReg(Register.B);
 					pc++;
 					break;
 				}
 				
 				case 0x06:{
-					regs[Register.B.index] = (mem[pc + 1]);
+					conv.loadToReg(Register.B, (char) (pc + 1));
 						cycles = 7;
 						while(cycles > 0){
 							cycles--;
@@ -159,38 +168,54 @@ public class Intel8080cpudebug
 				}
 				
 				case 0x0D:{
-					regs[Register.C.index]--;
+					conv.incReg(Register.C);
 					pc++;
 					break;
 				}
 				
 				case 0x11:{
 					//endianness might be incorrect
-					regs[Register.D.index] = mem[pc + 2];
-					regs[Register.E.index] = mem[pc + 1];
+					conv.loadToReg(Register.D, (char) (pc + 2));
+					conv.loadToReg(Register.E, (char) (pc + 1));
 					pc += 3;
 					break;
 				}
 				
 				case 0x13:{
 						//endianness might be incorrect
-						regs[Register.D.index]++;
-						regs[Register.E.index]++;
+						conv.incRegPair(Register.D, Register.E);
 						pc++;
 						break;
 					}
 				
+				case 0x1a:{
+					conv.regPairToReg(Register.D, Register.E, Register.A);
+					pc++;
+					break;
+				}
+				
 				case 0x21:{
 						//endianness might be incorrect
-						regs[Register.H.index] = mem[pc + 2];
-						regs[Register.L.index] = mem[pc + 1];
+					conv.loadToReg(Register.H, (char) (pc + 2));
+					conv.loadToReg(Register.L, (char) (pc + 1));
 						pc += 3;
 						break;
 					}
 				
+				case 0x23:{
+					conv.incRegPair(Register.H, Register.L);
+					pc++;
+					break;
+				}
+				
+				case 0x31:{
+					conv.memToSP((char)(pc + 2), (char)(pc + 1));
+					pc += 3;
+					break;
+				}
+				
 				case 0x32:{
-						int word = (mem[pc + 2] << 8) | (mem[pc + 1]);
-						mem[word] = regs[Register.A.index];
+					conv.regToMem(Register.A, (char) ((mem[pc + 2] << 8) | (mem[pc + 1])));
 						//pc++;
 						//start debug for pc check
 						//MyGdxGame.halt = true;
@@ -204,13 +229,13 @@ public class Intel8080cpudebug
 					}
 				
 				case 0x3C:{
-					regs[Register.A.index]++;
+					conv.incReg(Register.A);
 					pc++;
 					break;
 				}
 				
 				case 0x3E:{
-						regs[Register.A.index] = (mem[pc + 1]);
+					conv.loadToReg(Register.A, (char) (pc + 1));
 						cycles = 7;
 						while(cycles > 0){
 							cycles--;
@@ -219,23 +244,33 @@ public class Intel8080cpudebug
 						break;
 					}
 				
+				case 0x77:{
+					conv.regToRegPair(Register.H, Register.L, Register.C);
+					pc++;
+					break;
+				}
+				
 				case 0xc2:{
-					if(flags[Flag.Zero.index] == 1){
-						Gdx.app.log("Debug", Integer.toHexString((mem[pc + 2] << 8) | (mem[pc + 1])));
-						pc = ((mem[pc + 2] << 8) | (mem[pc +1]));
+						//Gdx.app.log("Debug", Integer.toHexString((mem[pc + 2] << 8) | (mem[pc + 1])));
+					boolean bool = conv.jumpIf(Flag.Zero, false, (char) (pc + 2), (char) (pc + 1));
 						cycles = 10;
 						while(cycles > 0){
 							cycles--;
 						}
-					}
-					pc += 3;
+						
+						if(bool == false){
+							pc += 3;
+							run();
+							MyGdxGame.halt = true;
+						}
 						break;
 					}
+
 					
 					
 				case 0xc3:{
 //						Gdx.app.log("Debug", Integer.toHexString((mem[pc + 2] << 8) | (mem[pc + 1])));
-					pc = ((mem[pc + 2] << 8) | (mem[pc +1]));
+					conv.jump((char)(pc + 2), (char)(pc + 1));	
 						cycles = 10;
 						while(cycles > 0){
 							cycles--;
@@ -253,29 +288,26 @@ public class Intel8080cpudebug
 						MyGdxGame.debug2 = Integer.toHexString((sp + 1 << 8) | (sp));
 						end debug */
 					//MyGdxGame.debug = Integer.toHexString((mem[sp] << 8) | (mem[sp + 1]));
-					pc = (mem[sp + 1] << 8) | (mem[sp]);
+					conv.jump((char)(sp + 1), (char)(sp));
 					sp += 2;
 					break;
 					}
 						
 				case 0xcd:{
 					//Fail emulation, FIX ASAP
-							mem[sp] = (char) pc;
-							sp += 2;
-							pc = ((mem[pc + 2] << 8) | (mem[pc + 1]));
+					conv.call((char)(pc + 2), (char)(pc + 1));
 				break;
 				}
 				
 				case 0xd3:{
-					mem[pc + 1] = regs[Register.A.index];
+					conv.regToMem(Register.A, (char)(pc + 1));
 					pc++;
 					break;
 				}
 					
 				case 0xe1:{
 					//MyGdxGame.debug = Integer.toHexString((mem[sp] << 8) | (mem[sp + 1]));
-					regs[Register.L.index] = mem[sp];
-					regs[Register.H.index] = mem[sp + 1];
+					conv.SPtoRegPair(Register.H, Register.L);
 					pc++;
 					break;
 				}

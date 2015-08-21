@@ -11,7 +11,7 @@ public class MyGdxGame implements ApplicationListener
 	
 	Texture texture;
 	SpriteBatch batch;
-	Intel8080cpu space8080 = new Intel8080cpu();
+	Intel8080cpudebug space8080 = new Intel8080cpudebug();
 	public static CharSequence str = "";
 	public static CharSequence debug = "";
 
