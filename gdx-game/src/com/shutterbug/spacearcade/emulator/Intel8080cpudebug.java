@@ -20,6 +20,11 @@ public class Intel8080cpudebug
 		regs = new char[7];
 		flags = new char[7];
 		mem = new char[0x4000];
+		
+		for(int i = 0x2400; i <= 0x3fff; i++){
+			mem[i]=0xff;
+		}
+		
 		pc = 0;
 		sp = 0;
 		DataInputStream input = null;
@@ -137,6 +142,9 @@ public class Intel8080cpudebug
 	}
 
 		public void run(){
+			//System.out.println(Integer.toHexString(regs[Register.B.index]));
+			//System.out.println("PC: " + Integer.toHexString(pc));
+			//System.out.println("SPinRAM: " + Integer.toHexString(mem[sp]));
 			MyGdxGame.str = Integer.toHexString(mem[pc]);
 			MyGdxGame.pc = Integer.toHexString(pc);
 			MyGdxGame.debug = Integer.toHexString(regs[Register.B.index]);
@@ -228,6 +236,15 @@ public class Intel8080cpudebug
 						break;
 					}
 				
+				case 0x36:{
+					
+				}
+				
+				case 0x3a:{
+					conv.loadToReg(Register.A, (char) ((mem[pc + 2] << 8) | mem[pc + 1]));
+					pc += 2;
+				}
+				
 				case 0x3C:{
 					conv.incReg(Register.A);
 					pc++;
@@ -250,6 +267,18 @@ public class Intel8080cpudebug
 					break;
 				}
 				
+				case 0xa7:{
+					regs[Register.A.index] = (char) (regs[Register.A.index] & regs[Register.A.index]);
+					conv.checkZ(Register.A);
+					conv.checkS(Register.A);
+					conv.checkP(Register.A);
+					pc++;
+				}
+				
+				case 0xc0:{
+					conv.jumpIf(Flag.Zero, false, mem[sp + 2], mem[sp + 1]);
+				}
+				
 				case 0xc2:{
 						//Gdx.app.log("Debug", Integer.toHexString((mem[pc + 2] << 8) | (mem[pc + 1])));
 					boolean bool = conv.jumpIf(Flag.Zero, false, (char) (pc + 2), (char) (pc + 1));
@@ -261,7 +290,7 @@ public class Intel8080cpudebug
 						if(bool == false){
 							pc += 3;
 							run();
-							MyGdxGame.halt = true;
+							//MyGdxGame.halt = true;
 						}
 						break;
 					}
@@ -319,6 +348,7 @@ public class Intel8080cpudebug
 				MyGdxGame.pc = Integer.toHexString(pc);
 				MyGdxGame.halt = true;
 				MyGdxGame.debug = "Halted.";
+				System.out.println("Unknown opcode " + Integer.toHexString(mem[pc]) + " at " + Integer.toHexString(pc));
 				//System.exit(0);
 					}
 			}

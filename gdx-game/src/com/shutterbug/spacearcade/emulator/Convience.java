@@ -80,6 +80,13 @@ public class Convience {
 		cpu.setRegs(regs);
 	}
 	
+	public void loadToRegPair(Register r, Register r2, char addr){
+		char[] regs = cpu.getRegs();
+		regs[r.index] = (char) (cpu.getMem()[addr] & 0xFF00);
+		regs[r2.index] = (char) (cpu.getMem()[addr] & 0x00FF);
+		cpu.setRegs(regs);
+	}
+	
 	public void incReg(Register r1){
 		char[] regs = cpu.getRegs();
 		regs[r1.index]++;
@@ -149,9 +156,13 @@ public class Convience {
 		char[] mem = cpu.getMem();
 		int sp = cpu.getSp();
 		int pc = cpu.getPc();
-		sp += 2;
-		int set = (cpu.getPc() & 0xFF00 << 8) | (cpu.getPc() & 0x00FF);
-		mem[sp] = (char) set;
+//		int set = (cpu.getPc() & 0xFF00);
+//		int set2 =  (cpu.getPc() & 0x00FF);
+//		int set3 = ((set2 << 8) | set);
+//		mem[sp - 2] = (char) set;
+//		mem[sp - 1] = (char) set2;
+		mem[sp - 2] = (char) (cpu.getPc() + 3);
+		sp -= 2;
 		pc = ((mem[addr1] << 8) | (mem[addr2]));
 		cpu.setMem(mem);
 		cpu.setSp(sp);
