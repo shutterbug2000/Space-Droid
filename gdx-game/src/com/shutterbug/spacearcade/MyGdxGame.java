@@ -12,6 +12,7 @@ import java.util.BitSet;
 public class MyGdxGame implements ApplicationListener
 {
 	
+	public OrthographicCamera camera;
 	Texture texture;
 	SpriteBatch batch;
 	Intel8080cpudebug space8080 = new Intel8080cpudebug();
@@ -34,6 +35,7 @@ public class MyGdxGame implements ApplicationListener
 	private int bit = 0;
 	private Texture w3;
 	private byte[] dispArray = new byte[0x3fff - 0x2400];
+	private BitSet bits;
 	
 	@Override
 	public void create()
@@ -63,20 +65,33 @@ public class MyGdxGame implements ApplicationListener
 		batch.begin();
 		batch.draw(w3, (1 * 256), (1 * 224), 256, 224);
 		batch.end();*/
+		
+		for(b = 0; b <= 0x3f00 - 0x2400 - 1; b++)
+		{
+		    dispArray[b] = (byte) 0xff;
+		}
+		
+		bits = BitSet.valueOf(dispArray); 
+		
+		camera = new OrthographicCamera(256, 224);
+		camera.setToOrtho(true, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+		camera.update();
+		batch.setProjectionMatrix(camera.combined);
+		
+//	    Gdx.gl.glClearColor(1, 1, 1, 1);
+//	    Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 	}
 
 	@Override
 	public void render()
 	{        
-	    Gdx.gl.glClearColor(1, 1, 1, 1);
-	    Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 		//batch.begin();
 		//batch.draw(texture, Gdx.graphics.getWidth() / 4, 0, 
 		//		   Gdx.graphics.getWidth() / 2, Gdx.graphics.getWidth() / 2);
 		//batch.end();
 		if(!halt || Gdx.input.isKeyPressed(Keys.SPACE)){
 		MyGdxGame.halt = false;
-		space8080.run();
+//		space8080.run();
 		}
 		//batch.begin();
 		/*font.setColor(0.0f, 0.0f, 1.0f, 1.0f);
@@ -118,36 +133,67 @@ public class MyGdxGame implements ApplicationListener
 				bit = bit << 1;
 			}*/
 				
-			//BitSet bits = BitSet.valueOf(dispArray); 
-				
 			
-			/*for(b = 0x2400; b <= 0x3fff; b++)
-				for(int bit = 0; bit <= 7; bit++)
-			{
-			    disparray[b + bit] = ((space8080.getMem()[b] & (1 << bit)) != 0);
-			}*/
-		
-		for(int k = 0x12000; k < 0x1fff8; k++) {
-//			System.out.println(bits.get(k));
-		if(true){
-			int x = ((k - 0x12000) % (256 * 8));
-			int y = (int)Math.floor((k - 0x12000) / (256 * 8) ) + 1;
+			byte[] disparray = new byte[0xE001];
+			
+			int currentPos = 0;
+			
+			for(int vramPos = 0; vramPos < 0x4000 - 0x2400; vramPos++){
+				for (int b = 0; b<8;b++){
+					if((((space8080.getMem()[0x2400 + vramPos] >> b)&1)) == 0){
+						disparray[currentPos] = (byte) 0x00;
+						currentPos++;
+					} else {
+						disparray[currentPos] = (byte) 0xff;
+						currentPos++;
+					}
+				}
+			}
+			
+			for(int k = 0; k < 0xE000; k++){
+				if(disparray[k] == 0){
+					int x = (k % 256);
+					int y = (int)Math.floor(k / 224);
+					
+					//System.out.println("x: " + x);
+					//System.out.println("y: " + y);
+					
+					batch.begin();
+					batch.draw(b2, (x), (y), 10, 10);
+					batch.end();
+				
+				} else{
+					int x = (k % 256);
+					int y = (int)Math.floor(k / 224);
+					batch.begin();
+					batch.draw(w2, (x), (y), 10, 10);
+					batch.end();
+				}
+			}
+				
+/*		for(int k = 0x0; k < 0xdff0; k++) {
+			System.out.println(bits.get(k));
+		if(bits.get(k)){
+			int x = (k % 256);
+			int y = (int)Math.floor(k / 224);
 			
 			System.out.println(x);
 			System.out.println(y);
 			
 			batch.begin();
-			batch.draw(b2, (x * 10), (y * 10), 10, 10);
+			batch.draw(b2, (x), (y), 10, 10);
 			batch.end();
 		
 		} else{
-			/*int x = (i % 256);
-			int y = (int)Math.floor(i / 224);
+			int x = (k % 256);
+			int y = (int)Math.floor(k / 224);
 			batch.begin();
-			batch.draw(w2, (x * 10), (y * 10), 10, 10);
-			batch.end();*/
+			batch.draw(w2, (x), (y), 10, 10);
+			batch.end();
 		}
-		}
+		}*/
+				
+		
 	
 		//font.draw(batch, opsran, Gdx.graphics.getWidth()/2, Gdx.graphics.getHeight());
 		//batch.end();
